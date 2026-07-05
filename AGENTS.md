@@ -13,9 +13,10 @@
 - Codex may create exactly one generated Markdown file under the project's `.runs/` directory.
 - The trusted runner may copy that file to exactly one Vault destination:
   `AI_Review/YYYY/YYYY.MM.DD.md`.
-- Preserve original memo text and timestamps in the review packet.
+- Preserve source IDs, timestamps, tags, and at most two short excerpts; do not duplicate full memos.
 - Clearly distinguish observation, inference, and uncertainty.
 - Wiki suggestions are proposals only. Do not apply them to `Wiki/`.
+- Keep the report compact and action-oriented: one CBT loop, one balanced thought, and one 24-hour behavioral experiment.
 
 ## Development workflow
 

@@ -47,3 +47,18 @@ Verification:
 
 Next:
 - Review the first report with the user before implementing scheduled runs or promotion into Raw/Wiki.
+
+## 2026-07-05 - Compact CBT action card
+
+Context:
+- The first report was too long and kept attention on interpretation instead of action.
+
+Change:
+- Replaced the narrative report with a CBT chain: situation, automatic thought, emotion/behavior, evidence check, balanced thought, and one behavioral experiment.
+- Limited output to 2,000 characters, one Wiki signal, two source excerpts, and one real-world action within 24 hours.
+
+Verification:
+- Regenerated 2026-07-05 as a 1,422-character card with a 90-second imperfect presentation exercise.
+
+Next:
+- Ask the user to assess whether the CBT chain and action intensity feel accurate.

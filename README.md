@@ -1,6 +1,6 @@
 # Flomo → Obsidian Bridge
 
-每天通过 flomo 官方 MCP 读取指定日期的闪念，让 Codex 结合现有 Obsidian 日记与 LLM Wiki，生成一份待审核状态报告。
+每天通过 flomo 官方 MCP 读取指定日期的闪念，让 Codex 结合现有 Obsidian 日记与 LLM Wiki，生成一张简短的待审核 CBT 行动卡。
 
 ## 数据边界
 
@@ -13,6 +13,8 @@ flomo（只读）
 ```
 
 首版不会修改 Vault 的 `Daily_Note/`、`Thinking_Lab/`、`Wiki/` 或系统目录，也不会向 flomo 写入内容。
+
+行动卡采用“情境 → 自动想法 → 情绪/行为 → 证据校准 → 行为实验”结构。它用于自助反思，不替代专业心理治疗，也不会根据单日笔记下诊断或断言深层信念。
 
 ## 技术选择
 

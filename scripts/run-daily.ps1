@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
 }
 
 $config = Get-Content -Raw -Encoding UTF8 -LiteralPath $ConfigPath | ConvertFrom-Json
-$requiredKeys = @('vaultPath', 'reviewRoot', 'timezone', 'recentDailyNotes', 'maxWikiSuggestions')
+$requiredKeys = @('vaultPath', 'reviewRoot', 'timezone', 'recentDailyNotes', 'maxWikiSuggestions', 'maxReportCharacters')
 foreach ($key in $requiredKeys) {
     if ($null -eq $config.$key -or [string]::IsNullOrWhiteSpace([string]$config.$key)) {
         throw "Missing required config value: $key"
@@ -132,8 +132,12 @@ if (-not (Test-Path -LiteralPath $temporaryOutputPath -PathType Leaf)) {
 }
 
 $generated = Get-Content -Raw -Encoding UTF8 -LiteralPath $temporaryOutputPath
+if ($generated.Length -gt [int]$config.maxReportCharacters) {
+    throw "Generated review is too long: $($generated.Length) characters; limit is $($config.maxReportCharacters)."
+}
 $requiredMarkers = @(
-    'type: ai_daily_review',
+    'type: cbt_action_review',
+    'framework: cbt_self_reflection',
     "date: $dateText",
     'source: flomo',
     'review_status: pending',
