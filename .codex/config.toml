@@ -1,0 +1,13 @@
+[mcp_servers.flomo]
+url = "https://flomoapp.com/mcp"
+bearer_token_env_var = "FLOMO_MCP_TOKEN"
+required = true
+enabled_tools = ["memo_search", "memo_batch_get"]
+default_tools_approval_mode = "approve"
+tool_timeout_sec = 90
+
+[mcp_servers.flomo.tools.memo_search]
+approval_mode = "approve"
+
+[mcp_servers.flomo.tools.memo_batch_get]
+approval_mode = "approve"

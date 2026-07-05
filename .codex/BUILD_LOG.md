@@ -15,3 +15,35 @@ Verification:
 Next:
 - Implement and verify the manual daily runner.
 
+## 2026-07-05 - Manual daily runner
+
+Context:
+- The first usable slice needs to fetch one day's memos while preventing direct writes to Raw and Wiki.
+
+Change:
+- Added a read-only flomo MCP allowlist, deterministic daily prompt contract, and PowerShell runner.
+- The runner grants Codex write access only to `AI_Review/` and verifies that no other review file changed.
+
+Verification:
+- Dry run rendered all parameters successfully.
+- First real run made no Vault changes; it exposed that non-interactive MCP approvals must be explicit.
+
+Next:
+- Re-run with only the two read-only flomo tools enabled and pre-approved.
+
+## 2026-07-05 - Two-stage Vault write isolation
+
+Context:
+- Codex could read flomo and Vault context, but the Windows sandbox rejected direct writes to the external Vault.
+
+Change:
+- Codex now writes only to the project-local `.runs/` directory.
+- The trusted runner validates required Markdown markers before copying one file to `AI_Review/`.
+
+Verification:
+- The failed direct-write run created no Vault file and found one memo for 2026-07-05.
+- The two-stage run generated and validated a 12 KB report, then copied only `AI_Review/2026/2026.07.05.md`.
+- PowerShell syntax passed; 9 Obsidian links resolved; repeated publication produced the same SHA-256 hash.
+
+Next:
+- Review the first report with the user before implementing scheduled runs or promotion into Raw/Wiki.

@@ -17,7 +17,7 @@ flomo（只读）
 ## 技术选择
 
 - Codex CLI：负责读取 flomo MCP、理解 Vault 上下文并生成 Markdown。
-- PowerShell：负责日期、配置、安全校验和调用 Codex。
+- PowerShell：负责日期、配置、安全校验、调用 Codex，并把校验后的单个草稿复制到审核区。
 - Windows 任务计划程序：验证稳定后再接入。
 - Mac 迁移时保留同一提示词，仅替换调度脚本。
 
@@ -29,5 +29,16 @@ flomo Token 存储在用户环境变量 `FLOMO_MCP_TOKEN` 中，不写入仓库�
 
 ## 当前阶段
 
-项目正在实现人工触发的每日待审核报告。定时调度和审核后正式入库属于后续阶段。
+人工触发的每日待审核报告已经可用：
 
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-daily.ps1 -Date 2026-07-05
+```
+
+先检查日期、路径和最终提示词但不调用 Codex：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-daily.ps1 -Date 2026-07-05 -DryRun
+```
+
+定时调度和审核后正式入库属于后续阶段。
