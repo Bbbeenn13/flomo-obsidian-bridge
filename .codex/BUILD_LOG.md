@@ -62,3 +62,22 @@ Verification:
 
 Next:
 - Ask the user to assess whether the CBT chain and action intensity feel accurate.
+
+## 2026-07-05 - Observer journal draft
+
+Context:
+- The CBT card was too clinical and action-heavy for the daily artifact; the user wants a durable account of who they were that day and what may be worth revisiting.
+
+Change:
+- Replaced the default CBT card with a first-person observer journal containing a daily narrative, one to three mines, an unresolved tension, and one gentle carry-forward sentence.
+- Removed daily Wiki proposals and reserved them for a future weekly extraction pass.
+- Kept CBT as an optional follow-up flag only when a concrete event, automatic thought, and avoidance loop appear together.
+- Added an explicit `Daily_Note` destination while preserving approval-gated promotion.
+
+Verification:
+- PowerShell syntax, JSON parsing, prompt rendering, and `git diff --check` passed.
+- The 2026-07-05 run read two memos and produced a 1,793-character observer journal with three mines and `cbt_followup: suggested`.
+- Only `AI_Review/2026/2026.07.05.md` changed in the Vault; no `Daily_Note` or Wiki file was written.
+
+Next:
+- Let the user review the journal voice, then implement explicit approval-based promotion and weekly Wiki extraction.

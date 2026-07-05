@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
 }
 
 $config = Get-Content -Raw -Encoding UTF8 -LiteralPath $ConfigPath | ConvertFrom-Json
-$requiredKeys = @('vaultPath', 'reviewRoot', 'timezone', 'recentDailyNotes', 'maxWikiSuggestions', 'maxReportCharacters')
+$requiredKeys = @('vaultPath', 'reviewRoot', 'timezone', 'recentDailyNotes', 'maxMines', 'maxReportCharacters')
 foreach ($key in $requiredKeys) {
     if ($null -eq $config.$key -or [string]::IsNullOrWhiteSpace([string]$config.$key)) {
         throw "Missing required config value: $key"
@@ -57,6 +57,7 @@ $endTime = $day.AddDays(1).ToString('yyyy-MM-dd') + 'T00:00:00+08:00'
 $reviewRoot = Join-Path $vaultPath ([string]$config.reviewRoot)
 $reviewYear = Join-Path $reviewRoot $yearText
 $outputPath = Join-Path $reviewYear ($fileDateText + '.md')
+$dailyDestination = "Daily_Note/$yearText/$fileDateText.md"
 $runDir = Join-Path $projectRoot '.runs'
 [IO.Directory]::CreateDirectory($runDir) | Out-Null
 if ([string]::IsNullOrWhiteSpace($GeneratedFile)) {
@@ -82,8 +83,10 @@ $replacements = [ordered]@{
     '{{VAULT_PATH}}' = $vaultPath
     '{{TEMP_OUTPUT_PATH}}' = $temporaryOutputPath
     '{{REVIEW_DESTINATION}}' = $outputPath
+    '{{DAILY_DESTINATION}}' = $dailyDestination
     '{{RECENT_DAILY_NOTES}}' = [string]$config.recentDailyNotes
-    '{{MAX_WIKI_SUGGESTIONS}}' = [string]$config.maxWikiSuggestions
+    '{{MAX_MINES}}' = [string]$config.maxMines
+    '{{MAX_REPORT_CHARACTERS}}' = [string]$config.maxReportCharacters
 }
 foreach ($entry in $replacements.GetEnumerator()) {
     $prompt = $prompt.Replace($entry.Key, $entry.Value)
@@ -136,11 +139,13 @@ if ($generated.Length -gt [int]$config.maxReportCharacters) {
     throw "Generated review is too long: $($generated.Length) characters; limit is $($config.maxReportCharacters)."
 }
 $requiredMarkers = @(
-    'type: cbt_action_review',
-    'framework: cbt_self_reflection',
+    'type: observer_daily_draft',
+    'mode: observer_journal',
     "date: $dateText",
     'source: flomo',
     'review_status: pending',
+    'approved_destination:',
+    'cbt_followup:',
     'memo_count:',
     'memo_ids:',
     'generated_by: codex'

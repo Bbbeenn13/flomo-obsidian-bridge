@@ -3,6 +3,6 @@
   "reviewRoot": "AI_Review",
   "timezone": "Asia/Shanghai",
   "recentDailyNotes": 7,
-  "maxWikiSuggestions": 1,
+  "maxMines": 3,
   "maxReportCharacters": 2000
 }

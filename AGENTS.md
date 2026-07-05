@@ -16,7 +16,9 @@
 - Preserve source IDs, timestamps, tags, and at most two short excerpts; do not duplicate full memos.
 - Clearly distinguish observation, inference, and uncertainty.
 - Wiki suggestions are proposals only. Do not apply them to `Wiki/`.
-- Keep the report compact and action-oriented: one CBT loop, one balanced thought, and one 24-hour behavioral experiment.
+- Default to a first-person observer journal: a coherent self-portrait, one to three durable “mines,” one unresolved tension, and at most one gentle sentence to carry forward.
+- Do not generate daily Wiki proposals. Wiki extraction happens in a separate weekly review.
+- Flag CBT only as an optional follow-up when a concrete event, automatic thought, and avoidance loop are all present.
 
 ## Development workflow
 
