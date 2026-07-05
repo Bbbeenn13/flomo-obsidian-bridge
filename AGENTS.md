@@ -19,6 +19,8 @@
 - Default to a first-person observer journal: a coherent self-portrait, one to three durable “mines,” one unresolved tension, and at most one gentle sentence to carry forward.
 - Do not generate daily Wiki proposals. Wiki extraction happens in a separate weekly review.
 - Flag CBT only as an optional follow-up when a concrete event, automatic thought, and avoidance loop are all present.
+- Promote a journal to `Daily_Note/` only after explicit user approval, using the approval script and its idempotency marker.
+- Keep any requested CBT decomposition in `AI_Review/CBT/` until it receives a separate approval.
 
 ## Development workflow
 

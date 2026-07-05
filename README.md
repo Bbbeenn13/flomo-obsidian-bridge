@@ -9,14 +9,17 @@ flomo（只读）
   → Codex 分析
   → Vault/AI_Review/YYYY/YYYY.MM.DD.md
   → 人工审核
-  → 后续再决定是否写入 Daily_Note 与 Wiki
+  → 显式批准后写入 Daily_Note
+  → 每周再决定是否写入 Wiki
 ```
 
-首版不会修改 Vault 的 `Daily_Note/`、`Thinking_Lab/`、`Wiki/` 或系统目录，也不会向 flomo 写入内容。
+日常生成阶段不会修改 Vault 的 `Daily_Note/`、`Thinking_Lab/`、`Wiki/` 或系统目录，也不会向 flomo 写入内容。只有用户明确批准后，审批脚本才会创建或追加当天 `Daily_Note`，并用日期标记阻止重复写入。
 
 日记默认回答：今天的我处在什么状态、不同闪念背后有什么共同线索、哪些内容值得作为长期复盘的“矿”。它不强制量化或布置行动；遇到明确卡点时，只提示是否值得另开一次 CBT 拆解。
 
 审核通过后，日记目标路径记录在 frontmatter 的 `approved_destination` 中；正式写入 `Daily_Note` 仍需要显式批准。Wiki 不按日更新，改为每周集中提炼。
+
+若日记标记了 `cbt_followup: suggested`，CBT 拆解单独存放在 `AI_Review/CBT/`，不会自动进入正式日记或 `Thinking_Lab/`。
 
 ## 技术选择
 
@@ -45,4 +48,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-daily.ps1 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-daily.ps1 -Date 2026-07-05 -DryRun
 ```
 
-定时调度和审核后正式入库属于后续阶段。
+明确审核通过后写入当天日记：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\approve-daily.ps1 -Date 2026-07-05 -Approve
+```
+
+定时调度与每周 Wiki 提炼属于后续阶段。

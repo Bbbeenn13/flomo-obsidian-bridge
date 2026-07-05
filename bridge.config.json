@@ -1,6 +1,8 @@
 {
   "vaultPath": "C:\\Users\\Administrator\\Documents\\obsidian\\NotesVault_GITHUB SYNC",
   "reviewRoot": "AI_Review",
+  "dailyRoot": "Daily_Note",
+  "cbtReviewRoot": "AI_Review/CBT",
   "timezone": "Asia/Shanghai",
   "recentDailyNotes": 7,
   "maxMines": 3,

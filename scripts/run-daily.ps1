@@ -18,7 +18,7 @@ if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) {
 }
 
 $config = Get-Content -Raw -Encoding UTF8 -LiteralPath $ConfigPath | ConvertFrom-Json
-$requiredKeys = @('vaultPath', 'reviewRoot', 'timezone', 'recentDailyNotes', 'maxMines', 'maxReportCharacters')
+$requiredKeys = @('vaultPath', 'reviewRoot', 'dailyRoot', 'timezone', 'recentDailyNotes', 'maxMines', 'maxReportCharacters')
 foreach ($key in $requiredKeys) {
     if ($null -eq $config.$key -or [string]::IsNullOrWhiteSpace([string]$config.$key)) {
         throw "Missing required config value: $key"
@@ -57,7 +57,7 @@ $endTime = $day.AddDays(1).ToString('yyyy-MM-dd') + 'T00:00:00+08:00'
 $reviewRoot = Join-Path $vaultPath ([string]$config.reviewRoot)
 $reviewYear = Join-Path $reviewRoot $yearText
 $outputPath = Join-Path $reviewYear ($fileDateText + '.md')
-$dailyDestination = "Daily_Note/$yearText/$fileDateText.md"
+$dailyDestination = "$([string]$config.dailyRoot)/$yearText/$fileDateText.md"
 $runDir = Join-Path $projectRoot '.runs'
 [IO.Directory]::CreateDirectory($runDir) | Out-Null
 if ([string]::IsNullOrWhiteSpace($GeneratedFile)) {

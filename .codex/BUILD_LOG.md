@@ -81,3 +81,21 @@ Verification:
 
 Next:
 - Let the user review the journal voice, then implement explicit approval-based promotion and weekly Wiki extraction.
+
+## 2026-07-05 - Explicit daily approval
+
+Context:
+- The user approved the observer journal and requested a separate CBT decomposition that remains under review.
+
+Change:
+- Added `approve-daily.ps1`, which requires `-Approve`, extracts only the four journal sections, creates or appends the configured `Daily_Note`, updates the review status, and writes an idempotency marker.
+- Added configurable daily and CBT review roots.
+- Kept the CBT follow-up as a separate pending file under `AI_Review/CBT/`.
+
+Verification:
+- PowerShell parsing, JSON parsing, dry-run rendering, and `git diff --check` passed.
+- Approval created `Daily_Note/2026/2026.07.05.md`, marked the source review approved, and changed no unrelated Vault files.
+- The CBT card links resolve to both the approved daily note and its source review.
+
+Next:
+- Review the CBT card; weekly Wiki extraction remains unimplemented.
