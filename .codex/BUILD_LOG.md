@@ -99,3 +99,21 @@ Verification:
 
 Next:
 - Review the CBT card; weekly Wiki extraction remains unimplemented.
+
+## 2026-07-05 - Codex-authored daily contract
+
+Context:
+- AI-authored notes must remain visibly distinct from handwritten notes while preserving the relaxed observer-journal voice.
+
+Change:
+- Approved daily filenames now use the `_Codex` suffix and include up to five keywords in frontmatter.
+- Promotion preserves the optional CBT flag and source index instead of stripping them from the daily note.
+- The prompt treats flomo entries as informal, possibly delayed life material and avoids demanding exact reconstruction.
+- Daily generation refuses to overwrite an already approved review.
+
+Verification:
+- Both PowerShell scripts parsed successfully; generation and approval dry runs rendered the new destination, keywords, and all journal sections.
+- The existing approved note was migrated to `2026.07.05_Codex.md`, with review and CBT links updated.
+
+Next:
+- Decide the filename convention for pending, deferred, approved, and archived review artifacts before implementing review indexes.

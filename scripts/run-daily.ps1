@@ -57,7 +57,7 @@ $endTime = $day.AddDays(1).ToString('yyyy-MM-dd') + 'T00:00:00+08:00'
 $reviewRoot = Join-Path $vaultPath ([string]$config.reviewRoot)
 $reviewYear = Join-Path $reviewRoot $yearText
 $outputPath = Join-Path $reviewYear ($fileDateText + '.md')
-$dailyDestination = "$([string]$config.dailyRoot)/$yearText/$fileDateText.md"
+$dailyDestination = "$([string]$config.dailyRoot)/$yearText/${fileDateText}_Codex.md"
 $runDir = Join-Path $projectRoot '.runs'
 [IO.Directory]::CreateDirectory($runDir) | Out-Null
 if ([string]::IsNullOrWhiteSpace($GeneratedFile)) {
@@ -99,6 +99,13 @@ if ($prompt -match '\{\{[A-Z_]+\}\}') {
 if ($DryRun) {
     Write-Output $prompt
     return
+}
+
+if ([string]::IsNullOrWhiteSpace($GeneratedFile) -and (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
+    $existingReview = Get-Content -Raw -Encoding UTF8 -LiteralPath $outputPath
+    if ($existingReview.Contains('review_status: approved')) {
+        throw "Refusing to overwrite an approved review: $outputPath"
+    }
 }
 
 [IO.Directory]::CreateDirectory($reviewYear) | Out-Null
@@ -146,6 +153,7 @@ $requiredMarkers = @(
     'review_status: pending',
     'approved_destination:',
     'cbt_followup:',
+    'keywords:',
     'memo_count:',
     'memo_ids:',
     'generated_by: codex'

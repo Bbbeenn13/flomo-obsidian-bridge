@@ -13,14 +13,16 @@ Last verified:
 - The generated frontmatter points to `Daily_Note/2026/2026.07.05.md`, but promotion still requires explicit approval.
 - Daily Wiki suggestions are disabled; durable Wiki extraction is reserved for a weekly pass.
 - The 2026-07-05 review was approved and promoted with an idempotency marker; its CBT follow-up remains pending under `AI_Review/CBT/`.
+- AI-authored daily notes use the `_Codex` filename suffix, carry up to five keywords, and preserve the complete relaxed journal structure.
 
 Next step:
-- Collect user feedback on the pending CBT card, then implement weekly Wiki extraction.
+- Confirm review-status filename conventions, then add manual weekly review and Wiki extraction before scheduling automation.
 
 Known risks:
 - flomo OAuth currently fails across its login domains; token authentication is used instead.
 - Approval intentionally requires a clean Vault worktree so unrelated user changes cannot be included accidentally.
 - User-level plugin/MCP startup warnings make Codex output noisy but did not affect the verified bridge run.
+- Review-status naming and weekly/monthly indexes are not implemented yet.
 
 Useful commands:
 - `codex mcp get flomo`

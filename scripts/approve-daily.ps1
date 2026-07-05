@@ -39,7 +39,7 @@ $dateText = $day.ToString('yyyy-MM-dd')
 $fileDateText = $day.ToString('yyyy.MM.dd')
 $yearText = $day.ToString('yyyy')
 $reviewRelativePath = "$([string]$config.reviewRoot)/$yearText/$fileDateText.md"
-$dailyRelativePath = "$([string]$config.dailyRoot)/$yearText/$fileDateText.md"
+$dailyRelativePath = "$([string]$config.dailyRoot)/$yearText/${fileDateText}_Codex.md"
 $reviewPath = Join-Path $vaultPath ($reviewRelativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
 $dailyPath = Join-Path $vaultPath ($dailyRelativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
 $marker = "<!-- flomo-observer-review: $dateText -->"
@@ -52,7 +52,8 @@ $review = Get-Content -Raw -Encoding UTF8 -LiteralPath $reviewPath
 $requiredMarkers = @(
     'type: observer_daily_draft',
     "date: $dateText",
-    "approved_destination: $dailyRelativePath"
+    "approved_destination: $dailyRelativePath",
+    'keywords:'
 )
 foreach ($requiredMarker in $requiredMarkers) {
     if (-not $review.Contains($requiredMarker)) {
@@ -63,12 +64,16 @@ foreach ($requiredMarker in $requiredMarkers) {
 function Get-ReviewSection {
     param(
         [Parameter(Mandatory = $true)][string]$Content,
-        [Parameter(Mandatory = $true)][string]$HeadingPattern
+        [Parameter(Mandatory = $true)][string]$HeadingPattern,
+        [switch]$Optional
     )
 
     $pattern = '(?ms)^## (?<heading>' + $HeadingPattern + ')\s*\r?\n(?<body>.*?)(?=^## |\z)'
     $match = [regex]::Match($Content, $pattern)
     if (-not $match.Success -or [string]::IsNullOrWhiteSpace($match.Groups['body'].Value)) {
+        if ($Optional) {
+            return $null
+        }
         throw "Review draft section is missing or empty: $HeadingPattern"
     }
     return [pscustomobject]@{
@@ -81,6 +86,22 @@ $today = Get-ReviewSection -Content $review -HeadingPattern '\u4eca\u5929\u7684\
 $mines = Get-ReviewSection -Content $review -HeadingPattern '\u503c\u5f97\u7559\u4e0b\u7684\u77ff'
 $unresolved = Get-ReviewSection -Content $review -HeadingPattern '\u8fd8\u6ca1\u60f3\u5b8c\u7684\u5730\u65b9'
 $carry = Get-ReviewSection -Content $review -HeadingPattern '\u5e26\u5230\u660e\u5929'
+$cbt = Get-ReviewSection -Content $review -HeadingPattern '\u53ef\u4ee5\u53e6\u884c\u62c6\u89e3\u7684\u5361\u70b9' -Optional
+$materials = Get-ReviewSection -Content $review -HeadingPattern '\u7d20\u6750\u7d22\u5f15'
+
+$keywordsMatch = [regex]::Match($review, '(?m)^keywords:\s*(?<value>\[[^\r\n]*\])\s*$')
+if (-not $keywordsMatch.Success) {
+    throw 'Review draft keywords must use a one-line YAML array.'
+}
+$keywordsValue = $keywordsMatch.Groups['value'].Value
+$keywordsInner = $keywordsValue.Trim('[', ']').Trim()
+$keywordCount = 0
+if (-not [string]::IsNullOrWhiteSpace($keywordsInner)) {
+    $keywordCount = @($keywordsInner.Split(',') | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }).Count
+}
+if ($keywordCount -gt 5) {
+    throw "Review draft has too many keywords: $keywordCount"
+}
 
 $lineEnding = "`r`n"
 $sourceLabel = [regex]::Unescape('\u6765\u6e90')
@@ -90,7 +111,16 @@ $fullWidthColon = [char]0xFF1A
 $fullWidthSemicolon = [char]0xFF1B
 $ideographicPeriod = [char]0x3002
 $sourceLine = "> ${sourceLabel}${fullWidthColon}[[AI_Review/$yearText/$fileDateText|flomo ${reviewAlias}]]${fullWidthSemicolon}${approvedLabel}${ideographicPeriod}"
-$dailyEntry = @(
+$dailyLines = @(
+    '---',
+    'type: codex_observer_daily',
+    "date: $dateText",
+    "keywords: $keywordsValue",
+    'source: flomo',
+    "review_source: `"[[AI_Review/$yearText/$fileDateText]]`"",
+    'generated_by: codex',
+    '---',
+    '',
     ('# ' + $today.Heading),
     '',
     $today.Body,
@@ -106,6 +136,20 @@ $dailyEntry = @(
     ('# ' + $carry.Heading),
     '',
     $carry.Body,
+    ''
+)
+if ($null -ne $cbt) {
+    $dailyLines += @(
+        ('# ' + $cbt.Heading),
+        '',
+        $cbt.Body,
+        ''
+    )
+}
+$dailyLines += @(
+    ('# ' + $materials.Heading),
+    '',
+    $materials.Body,
     '',
     '---',
     '',
@@ -113,7 +157,8 @@ $dailyEntry = @(
     '',
     $marker,
     ''
-) -join $lineEnding
+)
+$dailyEntry = $dailyLines -join $lineEnding
 
 if ($DryRun) {
     Write-Output "Review: $reviewPath"

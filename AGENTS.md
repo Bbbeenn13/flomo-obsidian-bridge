@@ -17,6 +17,8 @@
 - Clearly distinguish observation, inference, and uncertainty.
 - Wiki suggestions are proposals only. Do not apply them to `Wiki/`.
 - Default to a first-person observer journal: a coherent self-portrait, one to three durable “mines,” one unresolved tension, and at most one gentle sentence to carry forward.
+- Treat flomo entries as informal, possibly delayed life material; preserve uncertainty instead of demanding exact event reconstruction.
+- Add no more than five lightweight keywords and name approved AI-authored daily files with the `_Codex` suffix.
 - Do not generate daily Wiki proposals. Wiki extraction happens in a separate weekly review.
 - Flag CBT only as an optional follow-up when a concrete event, automatic thought, and avoidance loop are all present.
 - Promote a journal to `Daily_Note/` only after explicit user approval, using the approval script and its idempotency marker.
