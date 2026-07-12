@@ -56,7 +56,12 @@ $endTime = $day.AddDays(1).ToString('yyyy-MM-dd') + 'T00:00:00+08:00'
 
 $reviewRoot = Join-Path $vaultPath ([string]$config.reviewRoot)
 $reviewYear = Join-Path $reviewRoot $yearText
-$outputPath = Join-Path $reviewYear ($fileDateText + '.md')
+$pendingReviewSuffix = [regex]::Unescape('\u5f85\u5ba1\u6838')
+$approvedReviewSuffix = [regex]::Unescape('\u5df2\u5ba1\u6838')
+$pendingReviewFileName = "${fileDateText}_${pendingReviewSuffix}.md"
+$approvedReviewFileName = "${fileDateText}_${approvedReviewSuffix}.md"
+$outputPath = Join-Path $reviewYear $pendingReviewFileName
+$approvedOutputPath = Join-Path $reviewYear $approvedReviewFileName
 $dailyDestination = "$([string]$config.dailyRoot)/$yearText/${fileDateText}_Codex.md"
 $runDir = Join-Path $projectRoot '.runs'
 [IO.Directory]::CreateDirectory($runDir) | Out-Null
@@ -101,6 +106,9 @@ if ($DryRun) {
     return
 }
 
+if ([string]::IsNullOrWhiteSpace($GeneratedFile) -and (Test-Path -LiteralPath $approvedOutputPath -PathType Leaf)) {
+    throw "Refusing to overwrite an approved review: $approvedOutputPath"
+}
 if ([string]::IsNullOrWhiteSpace($GeneratedFile) -and (Test-Path -LiteralPath $outputPath -PathType Leaf)) {
     $existingReview = Get-Content -Raw -Encoding UTF8 -LiteralPath $outputPath
     if ($existingReview.Contains('review_status: approved')) {
@@ -162,6 +170,16 @@ foreach ($marker in $requiredMarkers) {
     if (-not $generated.Contains($marker)) {
         throw "Generated review is missing required marker: $marker"
     }
+}
+
+$memoCountMatch = [regex]::Match($generated, '(?m)^memo_count:\s*(?<count>\d+)\s*$')
+if (-not $memoCountMatch.Success) {
+    throw 'Generated review memo_count must be a non-negative integer.'
+}
+$memoCount = [int]$memoCountMatch.Groups['count'].Value
+if ($memoCount -eq 0) {
+    Write-Host "No flomo memos found for $dateText; review packet skipped."
+    return
 }
 
 [IO.File]::WriteAllText($outputPath, $generated, (New-Object System.Text.UTF8Encoding($false)))

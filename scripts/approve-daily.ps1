@@ -38,14 +38,31 @@ $day = $Date.Date
 $dateText = $day.ToString('yyyy-MM-dd')
 $fileDateText = $day.ToString('yyyy.MM.dd')
 $yearText = $day.ToString('yyyy')
-$reviewRelativePath = "$([string]$config.reviewRoot)/$yearText/$fileDateText.md"
+$pendingReviewSuffix = [regex]::Unescape('\u5f85\u5ba1\u6838')
+$approvedReviewSuffix = [regex]::Unescape('\u5df2\u5ba1\u6838')
+$pendingReviewRelativePath = "$([string]$config.reviewRoot)/$yearText/${fileDateText}_${pendingReviewSuffix}.md"
+$approvedReviewRelativePath = "$([string]$config.reviewRoot)/$yearText/${fileDateText}_${approvedReviewSuffix}.md"
+$legacyReviewRelativePath = "$([string]$config.reviewRoot)/$yearText/$fileDateText.md"
 $dailyRelativePath = "$([string]$config.dailyRoot)/$yearText/${fileDateText}_Codex.md"
-$reviewPath = Join-Path $vaultPath ($reviewRelativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
+$pendingReviewPath = Join-Path $vaultPath ($pendingReviewRelativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
+$approvedReviewPath = Join-Path $vaultPath ($approvedReviewRelativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
+$legacyReviewPath = Join-Path $vaultPath ($legacyReviewRelativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
 $dailyPath = Join-Path $vaultPath ($dailyRelativePath.Replace('/', [IO.Path]::DirectorySeparatorChar))
 $marker = "<!-- flomo-observer-review: $dateText -->"
 
-if (-not (Test-Path -LiteralPath $reviewPath -PathType Leaf)) {
-    throw "Review draft not found: $reviewPath"
+$reviewRelativePath = $null
+$reviewPath = $null
+if (Test-Path -LiteralPath $pendingReviewPath -PathType Leaf) {
+    $reviewRelativePath = $pendingReviewRelativePath
+    $reviewPath = $pendingReviewPath
+} elseif (Test-Path -LiteralPath $legacyReviewPath -PathType Leaf) {
+    $reviewRelativePath = $legacyReviewRelativePath
+    $reviewPath = $legacyReviewPath
+} elseif (Test-Path -LiteralPath $approvedReviewPath -PathType Leaf) {
+    $reviewRelativePath = $approvedReviewRelativePath
+    $reviewPath = $approvedReviewPath
+} else {
+    throw "Review draft not found. Checked: $pendingReviewPath; $legacyReviewPath; $approvedReviewPath"
 }
 
 $review = Get-Content -Raw -Encoding UTF8 -LiteralPath $reviewPath
@@ -110,14 +127,15 @@ $approvedLabel = [regex]::Unescape('\u7ecf\u672c\u4eba\u5ba1\u6838\u786e\u8ba4')
 $fullWidthColon = [char]0xFF1A
 $fullWidthSemicolon = [char]0xFF1B
 $ideographicPeriod = [char]0x3002
-$sourceLine = "> ${sourceLabel}${fullWidthColon}[[AI_Review/$yearText/$fileDateText|flomo ${reviewAlias}]]${fullWidthSemicolon}${approvedLabel}${ideographicPeriod}"
+$approvedReviewLink = "$([string]$config.reviewRoot)/$yearText/${fileDateText}_${approvedReviewSuffix}"
+$sourceLine = "> ${sourceLabel}${fullWidthColon}[[$approvedReviewLink|flomo ${reviewAlias}]]${fullWidthSemicolon}${approvedLabel}${ideographicPeriod}"
 $dailyLines = @(
     '---',
     'type: codex_observer_daily',
     "date: $dateText",
     "keywords: $keywordsValue",
     'source: flomo',
-    "review_source: `"[[AI_Review/$yearText/$fileDateText]]`"",
+    "review_source: `"[[$approvedReviewLink]]`"",
     'generated_by: codex',
     '---',
     '',
@@ -171,12 +189,28 @@ $gitCommand = Get-Command git -ErrorAction SilentlyContinue
 if ($null -eq $gitCommand) {
     throw 'Git is not available on PATH.'
 }
+
+function Get-GitStatusPaths {
+    param([Parameter(Mandatory = $true)][string]$Line)
+
+    $pathText = $Line.Substring(3).Replace('\', '/')
+    if ($pathText.Contains(' -> ')) {
+        return @($pathText.Split(' -> ') | ForEach-Object { $_.Trim() })
+    }
+    return @($pathText)
+}
+
 $existingChanges = @(& $gitCommand.Source -C $vaultPath status --porcelain)
 if ($LASTEXITCODE -ne 0) {
     throw 'Unable to inspect Vault Git status.'
 }
-if ($existingChanges.Count -gt 0) {
-    throw "Vault must be clean before approval: $($existingChanges -join '; ')"
+$reviewRootPrefix = "$([string]$config.reviewRoot)/"
+$unexpectedExisting = @($existingChanges | Where-Object {
+    $paths = @(Get-GitStatusPaths -Line $_)
+    @($paths | Where-Object { -not $_.StartsWith($reviewRootPrefix) }).Count -gt 0
+})
+if ($unexpectedExisting.Count -gt 0) {
+    throw "Vault has non-review changes before approval: $($unexpectedExisting -join '; ')"
 }
 
 $existingDaily = ''
@@ -211,20 +245,27 @@ $approvedReview = $approvedReview -replace '(?m)^- \[ \] ', '- [x] '
 
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 [IO.File]::WriteAllText($dailyPath, $newDaily, $utf8)
-[IO.File]::WriteAllText($reviewPath, $approvedReview, $utf8)
+[IO.File]::WriteAllText($approvedReviewPath, $approvedReview, $utf8)
+if ($reviewPath -ne $approvedReviewPath) {
+    Remove-Item -LiteralPath $reviewPath
+}
 
 $changed = @(& $gitCommand.Source -C $vaultPath status --porcelain)
 $expectedSuffixes = @(
     $reviewRelativePath,
+    $approvedReviewRelativePath,
     $dailyRelativePath
 )
 $unexpected = @($changed | Where-Object {
-    $line = $_
-    -not ($expectedSuffixes | Where-Object { $line.EndsWith($_) })
+    $paths = @(Get-GitStatusPaths -Line $_)
+    @($paths | Where-Object {
+        $path = $_
+        -not ($expectedSuffixes -contains $path) -and -not $path.StartsWith($reviewRootPrefix)
+    }).Count -gt 0
 })
 if ($unexpected.Count -gt 0) {
     throw "Unexpected Vault files changed during approval: $($unexpected -join '; ')"
 }
 
-Write-Host "Approved review: $reviewPath"
+Write-Host "Approved review: $approvedReviewPath"
 Write-Host "Daily note ready: $dailyPath"

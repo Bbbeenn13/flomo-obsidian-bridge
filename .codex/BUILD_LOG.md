@@ -117,3 +117,23 @@ Verification:
 
 Next:
 - Decide the filename convention for pending, deferred, approved, and archived review artifacts before implementing review indexes.
+
+## 2026-07-12 - Review status filenames
+
+Context:
+- Review drafts need visible status in the Obsidian file list, and empty flomo days should not create review files.
+
+Change:
+- Daily generation now writes review drafts as `YYYY.MM.DD_待审核.md` and refuses to overwrite `YYYY.MM.DD_已审核.md`.
+- Approval reads `_待审核` or the legacy `YYYY.MM.DD.md` path, writes the approved review as `_已审核`, and points Daily Note source links at the approved review file.
+- `memo_count: 0` generated packets are now skipped instead of copied to `AI_Review/`.
+- Existing July review files were migrated: 2026-07-05 to `_已审核`, 2026-07-06/07/09 to `_待审核`; empty 2026-07-08/10/11/12 review files were removed.
+
+Verification:
+- PowerShell parser checks passed for both scripts.
+- `run-daily.ps1 -GeneratedFile` skipped a zero-memo 2026-07-08 packet and did not recreate review files.
+- `approve-daily.ps1 -Date 2026-07-06 -DryRun` found `_待审核` and rendered links to `_已审核`.
+- `run-daily.ps1 -DryRun` renders `_待审核` review destinations; `git diff --check` passed.
+
+Next:
+- Review and approve the remaining pending July drafts when ready; weekly Wiki extraction remains unimplemented.
