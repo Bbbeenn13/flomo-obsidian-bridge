@@ -200,7 +200,7 @@ function Get-GitStatusPaths {
     return @($pathText)
 }
 
-$existingChanges = @(& $gitCommand.Source -C $vaultPath status --porcelain)
+$existingChanges = @(& $gitCommand.Source -C $vaultPath -c core.quotePath=false status --porcelain)
 if ($LASTEXITCODE -ne 0) {
     throw 'Unable to inspect Vault Git status.'
 }
@@ -250,7 +250,7 @@ if ($reviewPath -ne $approvedReviewPath) {
     Remove-Item -LiteralPath $reviewPath
 }
 
-$changed = @(& $gitCommand.Source -C $vaultPath status --porcelain)
+$changed = @(& $gitCommand.Source -C $vaultPath -c core.quotePath=false status --porcelain)
 $expectedSuffixes = @(
     $reviewRelativePath,
     $approvedReviewRelativePath,
