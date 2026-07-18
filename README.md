@@ -25,7 +25,7 @@ flomo（只读）
 
 - Codex CLI：负责读取 flomo MCP、理解 Vault 上下文并生成 Markdown。
 - PowerShell：负责日期、配置、安全校验、调用 Codex，并把校验后的单个草稿复制到审核区。
-- Windows 任务计划程序：验证稳定后再接入。
+- Windows 任务计划程序：每天自动生成 `AI_Review` 待审核稿。
 - Mac 迁移时保留同一提示词，仅替换调度脚本。
 
 不引入数据库、Web 服务或自建 MCP 服务。
@@ -54,4 +54,38 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-daily.ps1 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\approve-daily.ps1 -Date 2026-07-05 -Approve
 ```
 
-定时调度与每周 Wiki 提炼属于后续阶段。
+## 每日自动运行
+
+自动化只生成待审核稿，不会自动批准进入 `Daily_Note`。
+
+先用包装脚本测试一次当天运行，并查看 `.runs/scheduled-logs/` 下的日志：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-scheduled-daily.ps1
+```
+
+安装 Windows 每日计划任务，例如每天 23:30 运行：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-daily-schedule.ps1 -At "23:30"
+```
+
+如果只想预览，不真正安装：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-daily-schedule.ps1 -At "23:30" -WhatIf
+```
+
+如果要修改时间，重复安装时加 `-Replace`：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-daily-schedule.ps1 -At "22:30" -Replace
+```
+
+手动触发已安装的计划任务：
+
+```powershell
+Start-ScheduledTask -TaskName "Flomo Obsidian Daily Review"
+```
+
+每周 Wiki 提炼仍属于后续阶段。

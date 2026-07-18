@@ -137,3 +137,22 @@ Verification:
 
 Next:
 - Review and approve the remaining pending July drafts when ready; weekly Wiki extraction remains unimplemented.
+
+## 2026-07-18 - Windows daily scheduling
+
+Context:
+- The user wants the bridge to run automatically every day while keeping the current manual review gate.
+
+Change:
+- Added `run-scheduled-daily.ps1` as the Task Scheduler entrypoint with transcript logs under `.runs/scheduled-logs/`.
+- Added `install-daily-schedule.ps1` to register or replace a daily Windows Scheduled Task at an explicit `HH:mm` time, with `-WhatIf` preview support.
+- Documented test, install, replace, and manual trigger commands in the README.
+
+Verification:
+- PowerShell parser checks passed for all bridge scripts.
+- Task Scheduler cmdlets are available on this Windows host.
+- `run-scheduled-daily.ps1 -DryRun` rendered the expected 2026-07-18 prompt and wrote a transcript log without touching flomo or the Vault.
+- `install-daily-schedule.ps1 -At "23:30" -WhatIf` rendered the intended Scheduled Task command without installing it.
+
+Next:
+- Install the schedule at the user's chosen time.

@@ -1,7 +1,7 @@
 # Current State
 
 Current goal:
-- Generate, review, and explicitly promote observer-journal drafts from selected flomo memo days.
+- Generate, review, explicitly promote, and schedule observer-journal drafts from flomo memo days.
 
 Done condition:
 - Met: generation writes only non-empty memo days to `AI_Review/`; a separate command requires explicit approval before creating or appending `Daily_Note/`.
@@ -17,9 +17,10 @@ Last verified:
 - Review files now expose status in the filename: `YYYY.MM.DD_待审核.md` before approval and `YYYY.MM.DD_已审核.md` after approval.
 - `memo_count: 0` generated packets are skipped and are not copied to `AI_Review/`.
 - Current July review files: `2026.07.05_已审核.md`, plus pending `2026.07.06_待审核.md`, `2026.07.07_待审核.md`, and `2026.07.09_待审核.md`.
+- Windows daily scheduling is implemented as an installable Task Scheduler wrapper. It generates only `AI_Review/*_待审核.md`; promotion to `Daily_Note` still requires manual `approve-daily.ps1 -Approve`.
 
 Next step:
-- Review and approve the remaining pending July drafts when ready; add manual weekly review and Wiki extraction before scheduling automation.
+- Install the Windows daily schedule at the user's chosen time, then review and approve pending drafts when ready; add manual weekly review and Wiki extraction later.
 
 Known risks:
 - flomo OAuth currently fails across its login domains; token authentication is used instead.
@@ -30,4 +31,6 @@ Known risks:
 Useful commands:
 - `codex mcp get flomo`
 - `powershell -ExecutionPolicy Bypass -File scripts/run-daily.ps1 -Date 2026-07-05`
+- `powershell -ExecutionPolicy Bypass -File scripts/run-scheduled-daily.ps1`
+- `powershell -ExecutionPolicy Bypass -File scripts/install-daily-schedule.ps1 -At "23:30"`
 - `powershell -ExecutionPolicy Bypass -File scripts/approve-daily.ps1 -Date 2026-07-05 -Approve`
