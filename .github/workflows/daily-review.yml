@@ -1,0 +1,81 @@
+name: Daily flomo observer review
+
+on:
+  schedule:
+    # 23:30 Asia/Shanghai.
+    - cron: "30 15 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Optional date to generate, format YYYY-MM-DD. Defaults to today's Asia/Shanghai date."
+        required: false
+        type: string
+
+concurrency:
+  group: flomo-observer-daily-review
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    env:
+      VAULT_REPO: Bbbeenn13/notes-vault
+      VAULT_BRANCH: codex/flomo-review-staging
+    steps:
+      - name: Checkout bridge
+        uses: actions/checkout@v4
+
+      - name: Checkout Vault
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.VAULT_REPO }}
+          ref: ${{ env.VAULT_BRANCH }}
+          path: vault
+          token: ${{ secrets.VAULT_REPO_TOKEN }}
+
+      - name: Resolve run date
+        id: run_date
+        shell: bash
+        env:
+          INPUT_DATE: ${{ inputs.date }}
+        run: |
+          if [ -n "$INPUT_DATE" ]; then
+            echo "date=$INPUT_DATE" >> "$GITHUB_OUTPUT"
+          else
+            TZ=Asia/Shanghai date "+date=%F" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Codex CLI
+        run: npm install -g @openai/codex
+
+      - name: Authenticate Codex CLI
+        shell: bash
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          test -n "$OPENAI_API_KEY"
+          printenv OPENAI_API_KEY | codex login --with-api-key
+
+      - name: Configure Vault Git author
+        shell: bash
+        run: |
+          git -C vault config user.name "flomo-observer-bot"
+          git -C vault config user.email "flomo-observer-bot@users.noreply.github.com"
+
+      - name: Generate and push pending review
+        shell: pwsh
+        env:
+          FLOMO_MCP_TOKEN: ${{ secrets.FLOMO_MCP_TOKEN }}
+        run: |
+          ./scripts/run-github-daily.ps1 `
+            -Date "${{ steps.run_date.outputs.date }}" `
+            -VaultPath "$PWD/vault" `
+            -VaultBranch "$env:VAULT_BRANCH"

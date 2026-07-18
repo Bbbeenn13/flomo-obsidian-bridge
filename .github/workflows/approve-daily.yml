@@ -1,0 +1,48 @@
+name: Approve flomo observer daily
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Date to approve, format YYYY-MM-DD."
+        required: true
+        type: string
+
+concurrency:
+  group: flomo-observer-approve-${{ inputs.date }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    env:
+      VAULT_REPO: Bbbeenn13/notes-vault
+      VAULT_BRANCH: codex/flomo-review-staging
+    steps:
+      - name: Checkout bridge
+        uses: actions/checkout@v4
+
+      - name: Checkout Vault
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.VAULT_REPO }}
+          ref: ${{ env.VAULT_BRANCH }}
+          path: vault
+          token: ${{ secrets.VAULT_REPO_TOKEN }}
+
+      - name: Configure Vault Git author
+        shell: bash
+        run: |
+          git -C vault config user.name "flomo-observer-bot"
+          git -C vault config user.email "flomo-observer-bot@users.noreply.github.com"
+
+      - name: Approve and push daily note
+        shell: pwsh
+        run: |
+          ./scripts/approve-github-daily.ps1 `
+            -Date "${{ inputs.date }}" `
+            -VaultPath "$PWD/vault" `
+            -VaultBranch "$env:VAULT_BRANCH"

@@ -25,8 +25,9 @@ flomo（只读）
 
 - Codex CLI：负责读取 flomo MCP、理解 Vault 上下文并生成 Markdown。
 - PowerShell：负责日期、配置、安全校验、调用 Codex，并把校验后的单个草稿复制到审核区。
-- Windows 任务计划程序：验证稳定后再接入。
-- Mac 迁移时保留同一提示词，仅替换调度脚本。
+- GitHub Actions：每天在线生成 `AI_Review` 待审核稿，并支持手动批准。
+- Windows 任务计划程序：仅作为本地测试或兜底方案。
+- Codex Skill：保存仓库内，供桌面或手机 Codex 调用同一套流程。
 
 不引入数据库、Web 服务或自建 MCP 服务。
 
@@ -54,4 +55,71 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-daily.ps1 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\approve-daily.ps1 -Date 2026-07-05 -Approve
 ```
 
-定时调度与每周 Wiki 提炼属于后续阶段。
+## 每日自动运行
+
+推荐使用 GitHub Actions 在线运行；本地 Windows 计划任务只作为兜底。
+
+### GitHub Actions 在线运行
+
+自动化只生成待审核稿，不会自动批准进入 `Daily_Note`。默认计划是北京时间每天 23:30，对应 cron `30 15 * * *`。
+
+桥接仓库需要配置这些 Secrets：
+
+- `FLOMO_MCP_TOKEN`：flomo MCP token。
+- `OPENAI_API_KEY`：用于 GitHub Actions 中 `codex login --with-api-key`。
+- `VAULT_REPO_TOKEN`：能读写 `Bbbeenn13/notes-vault` 的 GitHub token。
+
+手动生成某一天的待审核稿：
+
+```powershell
+gh workflow run daily-review.yml -f date=2026-07-18
+```
+
+审核通过某一天：
+
+```powershell
+gh workflow run approve-daily.yml -f date=2026-07-18
+```
+
+如果从手机 Codex 控制，核心也是让 Codex 触发这两个 workflow；批准动作必须明确说出日期。
+
+本地预览 GitHub 包装脚本，不提交、不推送：
+
+```powershell
+.\scripts\run-github-daily.ps1 -Date 2026-07-18 -VaultPath "C:\Users\Administrator\Documents\obsidian\NotesVault_GITHUB SYNC" -DryRun
+.\scripts\approve-github-daily.ps1 -Date 2026-07-06 -VaultPath "C:\Users\Administrator\Documents\obsidian\NotesVault_GITHUB SYNC" -DryRun
+```
+
+### 本地 Windows 兜底运行
+
+先用包装脚本测试一次当天运行，并查看 `.runs/scheduled-logs/` 下的日志：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\run-scheduled-daily.ps1
+```
+
+安装 Windows 每日计划任务，例如每天 23:30 运行：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-daily-schedule.ps1 -At "23:30"
+```
+
+如果只想预览，不真正安装：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-daily-schedule.ps1 -At "23:30" -WhatIf
+```
+
+如果要修改时间，重复安装时加 `-Replace`：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\install-daily-schedule.ps1 -At "22:30" -Replace
+```
+
+手动触发已安装的计划任务：
+
+```powershell
+Start-ScheduledTask -TaskName "Flomo Obsidian Daily Review"
+```
+
+每周 Wiki 提炼仍属于后续阶段。

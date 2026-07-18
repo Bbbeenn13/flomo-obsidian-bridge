@@ -1,0 +1,4 @@
+interface:
+  display_name: "Flomo Obsidian Observer"
+  short_description: "Run flomo-to-Obsidian observer journal workflows"
+  default_prompt: "Use $flomo-obsidian-observer to generate, approve, or inspect my flomo observer journal workflow."
