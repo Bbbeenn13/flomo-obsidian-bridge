@@ -156,3 +156,24 @@ Verification:
 
 Next:
 - Install the schedule at the user's chosen time.
+
+## 2026-07-18 - GitHub-hosted operation and Skill
+
+Context:
+- The user does not want local scheduled automation; they want scripts saved to GitHub, cloud/agent execution, a Codex Skill, scheduled runs, and mobile Codex control.
+
+Change:
+- Added GitHub Actions for scheduled/manual daily generation and manual approval.
+- Added CI wrapper scripts that rewrite the Vault path for a checked-out Vault repo, support dry-run validation, use per-run temporary config files, commit only allowed Vault paths, and push back to the Vault branch.
+- Added a repository skill, `skills/flomo-obsidian-observer`, documenting local, GitHub Actions, approval, mobile-control, and secret boundaries.
+- Updated documentation to make GitHub Actions the recommended automation path and Windows scheduling a fallback.
+
+Verification:
+- PowerShell parser checks passed for the local and GitHub wrapper scripts.
+- Skill structure validated with `quick_validate.py` under `PYTHONUTF8=1`.
+- `run-github-daily.ps1 -DryRun` rendered the expected GitHub-mode prompt against the local Vault without committing or pushing.
+- `approve-github-daily.ps1 -DryRun` rendered the approval output against the local Vault without committing or pushing.
+- `git diff --check` passed. A generic local YAML parser was not available, so workflow syntax still needs first-run validation on GitHub.
+
+Next:
+- Push the bridge branch, configure GitHub Secrets, then validate the first workflow dispatch on GitHub.
